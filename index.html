@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Enseigne3D</title>
+<meta name="description" content="Générateur d'enseignes en blocs imprimables en 3D : lettres multicolores, découpe selon le plateau, jonctions vissées M3, fixation murale, export STL et 3MF.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="css/style.css">
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+<script type="module" src="js/main.js"></script>
+</head>
+<body>
+<header>
+  <h1>Enseigne<b>3D</b></h1>
+  <p>Tape un texte, choisis une police : l'outil découpe l'enseigne en blocs imprimables, ajoute les renforts et les trous M3 aux jonctions, et exporte chaque bloc en STL ou 3MF multicolore.</p>
+</header>
+
+<div class="layout">
+<aside>
+  <section class="card">
+    <h2>Texte</h2>
+    <input type="text" id="text" value="RepairSpace" autocomplete="off" spellcheck="false" aria-label="Texte de l'enseigne">
+    <div class="chips" id="chips" aria-label="Lettres et découpes"></div>
+    <p class="hint">Clique une lettre pour changer sa couleur. Clique un trait entre deux lettres pour couper ou joindre les blocs. La coupe contourne les lettres, elle ne les traverse jamais.</p>
+    <div class="row" style="flex-wrap:nowrap">
+      <label class="field" style="grid-template-columns:auto 1fr;flex:1"><span>Flèche</span>
+        <select id="arrow">
+          <option value="none">Aucune</option>
+          <option value="left">← Gauche</option>
+          <option value="right">→ Droite</option>
+          <option value="down">↓ Bas</option>
+          <option value="up">↑ Haut</option>
+        </select></label>
+      <select id="arrowColor" aria-label="Couleur de la flèche" style="width:110px">
+        <option value="0">Couleur A</option><option value="1">Couleur B</option><option value="2">Couleur C</option>
+      </select>
+    </div>
+    <div class="row">
+      <button id="autoCut" type="button">Découpe automatique</button>
+      <button id="cutAll" type="button">Une lettre par bloc</button>
+      <span class="hint" id="cutMode"></span>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Type d'enseigne</h2>
+    <select id="signType" aria-label="Type d'enseigne">
+      <option value="wall">Murale, à plat</option>
+      <option value="flag">Drapeau double face (perpendiculaire au mur)</option>
+    </select>
+    <label class="field" id="wallSideRow" hidden><span>Mur, vu depuis la face A</span>
+      <select id="wallSide"><option value="left">à gauche</option><option value="right">à droite</option></select></label>
+    <p class="hint" id="flagHint" hidden>Deux demi-coques imprimées face au plateau, collées dos à dos avec des pions de centrage. Fixation par 2 tiges filetées M6 dans le chant côté mur. La flèche indique la même direction des deux côtés.</p>
+  </section>
+
+  <section class="card">
+    <h2>Police</h2>
+    <div class="row" style="flex-wrap:nowrap">
+      <select id="font" aria-label="Police"></select>
+      <select id="weight" aria-label="Graisse" style="width:90px"></select>
+    </div>
+    <label class="field"><span>Ou ta propre police <small>.ttf .otf .woff</small></span>
+      <input type="file" id="fontFile" accept=".ttf,.otf,.woff,font/ttf,font/otf,font/woff" style="font-size:12px"></label>
+    <div id="fields-police"></div>
+  </section>
+
+  <section class="card">
+    <h2>Couleurs</h2>
+    <div class="colors">
+      <label>Fond<input type="color" id="colBase" value="#f2f2ef"></label>
+      <label>Lettres A<input type="color" id="col0" value="#d7192a"></label>
+      <label>Lettres B<input type="color" id="col1" value="#1b1b1b"></label>
+      <label>Lettres C<input type="color" id="col2" value="#1d63c9"></label>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Forme</h2>
+    <div id="fields-forme"></div>
+    <label class="check"><input type="checkbox" id="chamferJoints" checked> Chanfrein aussi le long des jonctions</label>
+  </section>
+
+  <section class="card">
+    <h2>Imprimante</h2>
+    <div id="fields-impr"></div>
+  </section>
+
+  <section class="card">
+    <h2>Assemblage M3</h2>
+    <div id="fields-assemblage"></div>
+    <label class="check"><input type="checkbox" id="nutTrap" checked> Logement d'écrou hexagonal</label>
+  </section>
+
+  <section class="card">
+    <h2>Fixation murale</h2>
+    <label class="field"><span>Type</span>
+      <select id="fixType">
+        <option value="none">Aucune</option>
+        <option value="keyhole" selected>Trous de serrure (vis)</option>
+        <option value="hook">Crochet</option>
+        <option value="tape">Double face</option>
+      </select></label>
+    <div id="fields-fixation"></div>
+    <p class="hint">Tous les points sont sur une même ligne horizontale. Les cotes de perçage s'affichent sous l'aperçu.</p>
+  </section>
+</aside>
+
+<main>
+  <div class="calcbar">
+    <button type="button" class="primary" id="btnRun">Recalculer</button>
+    <label class="check"><input type="checkbox" id="autoRun"> Recalcul automatique</label>
+    <span class="hint" id="dirtyHint" hidden>Modifications pas encore appliquées</span>
+    <span class="hint kbd">Ctrl + Entrée</span>
+  </div>
+  <div class="viewer">
+    <canvas id="view"></canvas>
+    <div class="tools">
+      <button type="button" id="btnExplode" aria-pressed="true">Éclaté</button>
+      <button type="button" id="btnFront">Face</button>
+      <button type="button" id="btnBack">Arrière</button>
+    </div>
+    <div id="status">Chargement…</div>
+  </div>
+  <div class="stats" id="stats"></div>
+  <div class="fixinfo" id="fixInfo" hidden></div>
+  <div class="warnings" id="warnings"></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Bloc</th><th>Lettres</th><th>L × H × P (mm)</th><th>Vis</th><th>Téléchargement</th></tr></thead>
+      <tbody id="segRows"></tbody>
+    </table>
+  </div>
+  <div class="foot">
+    <p class="hint">Fichiers orientés face contre le plateau. Le 3MF contient le fond et chaque couleur comme pièces d'un même objet, avec leur filament (fond = 1). Le 3MF multi-plateaux range tous les blocs sur des plateaux : ouvre-le dans OrcaSlicer ou Bambu Studio avec Fichier &gt; Ouvrir un projet.</p>
+    <div class="row">
+      <button id="dlPlates" type="button" disabled>3MF multi-plateaux</button>
+      <button class="primary" id="dlAll" type="button" disabled>Tout télécharger (.zip)</button>
+    </div>
+  </div>
+</main>
+</div>
+
+<footer>
+  Enseigne3D — logiciel libre (licence MIT) · <a href="https://github.com/Barbatronic/enseigne3d">code source et suggestions sur GitHub</a>
+</footer>
+</body>
+</html>
