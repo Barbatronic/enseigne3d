@@ -18,6 +18,8 @@ Tu tapes un texte, tu choisis une police, et l'outil prépare des blocs prêts �
 
 Toutes les pièces s'impriment face contre le plateau, sans support.
 
+Les réglages (texte, couleurs, police, cotes) sont enregistrés dans le navigateur et retrouvés à la prochaine ouverture. Le bouton *Réinitialiser* revient aux valeurs par défaut.
+
 ## Lancer en local
 
 Les modules JavaScript et le Web Worker ne fonctionnent pas en ouvrant `index.html` directement (`file://`). Il faut un petit serveur web :
@@ -37,7 +39,7 @@ index.html, css/style.css   page et styles
 js/config.js                polices proposées, réglages et valeurs par défaut
 js/main.js                  interface : réglages, polices, calcul, tableau, téléchargements
 js/worker.js                calcul en arrière-plan (l'interface reste fluide)
-js/ui/                      aperçu 3D, champs de réglage, ruban de lettres
+js/ui/                      aperçu 3D, champs de réglage, ruban de lettres, sauvegarde locale
 js/geometry/                calcul pur, sans DOM (testé dans Node)
   build.js                  assemble une enseigne complète
   layout.js                 glyphes et flèche

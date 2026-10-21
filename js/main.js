@@ -1,6 +1,7 @@
 // Point d'entrée de l'interface : réglages, polices, calcul dans le worker, aperçu, tableau et téléchargements.
 import { CDN, FONTS, fontUrl, defaultOptions } from './config.js';
-import { createParamFields } from './ui/params.js';
+import { createParamFields, setParamValues } from './ui/params.js';
+import { loadState, saveState, clearState, saveFont, loadFont, forgetFont } from './ui/storage.js';
 import { renderChips, everyLetter, remapColors } from './ui/chips.js';
 import { createViewer } from './ui/viewer.js';
 import { makeStl } from './export/stl.js';
@@ -87,6 +88,7 @@ function setDirty(v) {
 // Chaque modification passe ici : calcul si recalcul auto (ou premier calcul), sinon « à recalculer »
 function schedule(delay = 350) {
   clearTimeout(timer);
+  persist();
   if (autoBox.checked || !ui.result) timer = setTimeout(run, delay);
   else setDirty(true);
 }
@@ -123,7 +125,7 @@ async function loadPreset() {
     const r = await fetch(fontUrl(id, w));
     if (!r.ok) throw new Error(r.status);
     await useFontBuffer(await r.arrayBuffer(), `${fontSel.selectedOptions[0].text} ${w}`);
-    $('fontFile').value = '';
+    $('fontFile').value = ''; forgetFont();
   } catch (e) {
     setStatus('Police introuvable en ligne : vérifie la connexion ou charge un fichier .ttf');
   }
@@ -132,7 +134,10 @@ fontSel.addEventListener('change', () => { fillWeights(); loadPreset(); });
 weightSel.addEventListener('change', loadPreset);
 $('fontFile').addEventListener('change', async e => {
   const file = e.target.files[0];
-  if (file) await useFontBuffer(await file.arrayBuffer(), file.name.replace(/\.[^.]+$/, ''));
+  if (!file) return;
+  const buf = await file.arrayBuffer(), name = file.name.replace(/\.[^.]+$/, '');
+  saveFont(buf, name);
+  await useFontBuffer(buf, name);
 });
 
 /* ---------- Texte, lettres et options ---------- */
@@ -144,13 +149,12 @@ $('text').addEventListener('input', e => {
 });
 $('autoCut').onclick = () => { opts.manualCuts = null; refreshChips(); schedule(0); };
 $('cutAll').onclick = () => { opts.manualCuts = everyLetter(opts.text); refreshChips(); schedule(0); };
-for (const id of ['colBase', 'col0', 'col1', 'col2']) $(id).addEventListener('input', () => { refreshChips(); viewer.recolor(colors()); });
+for (const id of ['colBase', 'col0', 'col1', 'col2']) $(id).addEventListener('input', () => { refreshChips(); viewer.recolor(colors()); persist(); });
 for (const id of ['nutTrap', 'chamferJoints', 'fixType', 'arrow', 'arrowColor', 'wallSide']) $(id).addEventListener('change', () => schedule());
-$('signType').addEventListener('change', () => {
-  const flag = $('signType').value === 'flag';
-  $('wallSideRow').hidden = $('flagHint').hidden = !flag;
-  viewer.reframeNext(); schedule();
-});
+function applySignType() {
+  $('wallSideRow').hidden = $('flagHint').hidden = $('signType').value !== 'flag';
+}
+$('signType').addEventListener('change', () => { applySignType(); viewer.reframeNext(); schedule(); });
 
 /* ---------- Aperçu ---------- */
 $('btnExplode').onclick = e => e.currentTarget.setAttribute('aria-pressed', viewer.toggleExplode());
@@ -207,9 +211,51 @@ $('dlAll').onclick = async () => {
   save(`enseigne-${slug(opts.text)}.zip`, zip.zipSync(files, { level: 6 }));
 };
 
+/* ---------- Sauvegarde des réglages entre deux ouvertures ---------- */
+const OPT_FIELDS = ['arrow', 'arrowColor', 'signType', 'wallSide', 'fixType', 'nutTrap', 'chamferJoints'];
+const COLOR_FIELDS = ['colBase', 'col0', 'col1', 'col2'];
+let saveTimer = null, resetting = false;
+function flush() {
+  clearTimeout(saveTimer);
+  if (resetting) return;
+  saveState({ P: { ...P }, opts: readOptions(), colors: colors(), font: fontSel.value, weight: weightSel.value });
+}
+function persist() { clearTimeout(saveTimer); saveTimer = setTimeout(flush, 300); }
+document.addEventListener('visibilitychange', () => { if (document.hidden) flush(); });
+
+// Remet un champ à une valeur enregistrée, seulement si elle est valide
+function setField(el, v) {
+  if (v === undefined) return;
+  if (el.type === 'checkbox') el.checked = !!v;
+  else if (el.type === 'color') { if (/^#[0-9a-f]{6}$/i.test(v)) el.value = v; }
+  else if ([...el.options].some(o => o.value === String(v))) el.value = String(v);
+}
+function restore(s) {
+  if (!s) return;
+  setParamValues(P, s.P);
+  const o = s.opts ?? {};
+  if (typeof o.text === 'string') {
+    opts.text = $('text').value = o.text;
+    const cc = Array.isArray(o.charColor) ? o.charColor : [];
+    opts.charColor = Array.from(o.text, (c, i) => [0, 1, 2].includes(cc[i]) ? cc[i] : 0);
+    opts.manualCuts = Array.isArray(o.manualCuts) ? o.manualCuts.filter(Number.isInteger) : null;
+  }
+  for (const id of OPT_FIELDS) setField($(id), o[id]);
+  COLOR_FIELDS.forEach((id, i) => setField($(id), s.colors?.[i]));
+  if (FONTS.some(f => f[0] === s.font)) { fontSel.value = s.font; fillWeights(); setField(weightSel, s.weight); }
+  applySignType();
+}
+$('btnReset').onclick = () => {
+  if (!confirm('Revenir aux réglages par défaut ? Le travail en cours sera effacé.')) return;
+  resetting = true; clearState(); location.reload();
+};
+
 /* ---------- Démarrage ---------- */
+restore(loadState());
 refreshChips();
 setStatus('Chargement du moteur 3D…');
-loadPreset();
+const savedFont = loadFont();
+if (savedFont) useFontBuffer(savedFont.buffer, savedFont.name);
+else loadPreset();
 // accès pour le débogage et les tests de bout en bout
 window.__enseigne = { P, opts, get result() { return ui.result; }, run, viewer };

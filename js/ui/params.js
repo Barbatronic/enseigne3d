@@ -16,3 +16,13 @@ export function createParamFields(onChange) {
   }
   return P;
 }
+
+// Applique des valeurs enregistrées (bornées comme une saisie) aux champs et à P
+export function setParamValues(P, values) {
+  for (const [, id, , , , min, max] of PARAMS) {
+    const n = values?.[id];
+    if (!Number.isFinite(n)) continue;
+    P[id] = Math.min(max, Math.max(min, n));
+    document.getElementById('p_' + id).value = P[id];
+  }
+}
