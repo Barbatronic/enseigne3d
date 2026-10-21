@@ -53,8 +53,8 @@ export const defaultParams = () => Object.fromEntries(PARAMS.map(p => [p[1], p[4
 
 // Choix qui ne sont pas des nombres (texte, menus, cases à cocher)
 export const defaultOptions = () => ({
-  text: 'RepairSpace',
-  charColor: [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1],
+  text: 'Enseigne3D',
+  charColor: [0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
   manualCuts: null,        // tableau d'index « coupe après le caractère i », ou null = découpe auto
   arrow: 'none',           // none | left | right | down | up
   arrowColor: 0,
