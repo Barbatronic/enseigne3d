@@ -14,12 +14,18 @@
   "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
 } }
 </script>
+<script>try { const t = localStorage.getItem('enseigne-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}</script>
 <script type="module" src="js/main.js"></script>
 </head>
 <body>
 <header>
   <h1>Enseigne<b>3D</b></h1>
   <p>Tape un texte, choisis une police : l'outil découpe l'enseigne en blocs imprimables, ajoute les renforts et les trous M3 aux jonctions, et exporte chaque bloc en STL ou 3MF multicolore.</p>
+  <select id="theme" aria-label="Thème de l'interface">
+    <option value="">Thème auto</option>
+    <option value="light">☀ Lumineux</option>
+    <option value="dark">☾ Nuit</option>
+  </select>
 </header>
 
 <div class="layout">

@@ -18,7 +18,7 @@ Tu tapes un texte, tu choisis une police, et l'outil prépare des blocs prêts �
 
 Toutes les pièces s'impriment face contre le plateau, sans support.
 
-Les réglages (texte, couleurs, police, cotes) sont enregistrés dans le navigateur et retrouvés à la prochaine ouverture. Le bouton *Réinitialiser* revient aux valeurs par défaut.
+Les réglages (texte, couleurs, police, cotes) sont enregistrés dans le navigateur et retrouvés à la prochaine ouverture. Le bouton *Réinitialiser* revient aux valeurs par défaut. Un sélecteur en haut à droite passe l'interface en thème lumineux ou nuit.
 
 ## Lancer en local
 

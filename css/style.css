@@ -38,6 +38,7 @@ header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; m
 h1 { font-size: 22px; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
 h1 b { color: var(--accent); }
 header p { margin: 0; color: var(--muted); max-width: 70ch; }
+#theme { width: auto; margin-left: auto; align-self: center; }
 .layout { display: grid; grid-template-columns: minmax(300px, 360px) minmax(0, 1fr); gap: 18px; align-items: start; }
 @media (max-width: 860px) { .layout { grid-template-columns: minmax(0, 1fr); } }
 aside { display: flex; flex-direction: column; gap: 12px; }

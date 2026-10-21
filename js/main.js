@@ -156,6 +156,15 @@ function applySignType() {
 }
 $('signType').addEventListener('change', () => { applySignType(); viewer.reframeNext(); schedule(); });
 
+/* ---------- Thème (appliqué dès le <head> pour éviter un flash) ---------- */
+const themeSel = $('theme');
+themeSel.value = document.documentElement.dataset.theme ?? '';
+themeSel.addEventListener('change', () => {
+  const t = themeSel.value;
+  if (t) document.documentElement.dataset.theme = t; else delete document.documentElement.dataset.theme;
+  try { t ? localStorage.setItem('enseigne-theme', t) : localStorage.removeItem('enseigne-theme'); } catch (e) { /* stockage indisponible */ }
+});
+
 /* ---------- Aperçu ---------- */
 $('btnExplode').onclick = e => e.currentTarget.setAttribute('aria-pressed', viewer.toggleExplode());
 $('btnFront').onclick = () => viewer.frame('front');
