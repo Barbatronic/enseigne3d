@@ -5,6 +5,7 @@ const isInk = c => !/\s/.test(c);
 export function renderChips(box, modeLabel, state, colors, onChange) {
   box.innerHTML = '';
   const cs = Array.from(state.text), cols = colors();
+  box.style.setProperty('--chips-bg', cols[0]);
   const shown = new Set(state.manualCuts ?? state.shownCuts);
   cs.forEach((c, i) => {
     const b = document.createElement('button');

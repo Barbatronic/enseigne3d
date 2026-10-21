@@ -61,16 +61,16 @@ button:hover { border-color: var(--muted); }
 button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
 button:disabled { opacity: .5; cursor: default; }
 .hint { color: var(--muted); font-size: 12px; margin: 0; }
-/* Ruban des lettres : clic = couleur, ciseaux = découpe */
-.chips { display: flex; flex-wrap: wrap; align-items: stretch; gap: 2px 0; padding: 6px; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; min-height: 52px; }
+/* Ruban des lettres : clic = couleur, ciseaux = découpe. Fond = couleur de fond de l'enseigne, quel que soit le thème */
+.chips { display: flex; flex-wrap: wrap; align-items: stretch; gap: 2px 0; padding: 6px; background: var(--chips-bg, #f2f2ef); border: 1px solid var(--line); border-radius: 6px; min-height: 52px; }
 .chip { font-family: "BannerFont", var(--font-ui); font-size: 28px; line-height: 1; min-width: 22px; padding: 6px 4px; border: 0; background: transparent; border-radius: 4px; cursor: pointer; }
-.chip:hover { background: var(--panel); }
+.chip:hover { background: rgb(128 128 128 / .18); }
 .chip.space { width: 14px; cursor: default; }
-.gap { width: 16px; padding: 0; border: 0; background: transparent; display: grid; place-items: center; color: var(--line); cursor: pointer; font-size: 12px; }
+.gap { width: 16px; padding: 0; border: 0; background: transparent; display: grid; place-items: center; color: rgb(128 128 128 / .45); cursor: pointer; font-size: 12px; }
 .gap::before { content: ""; width: 2px; height: 70%; background: currentColor; border-radius: 1px; }
 .gap.on { color: var(--accent); }
 .gap.on::before { width: 3px; background: repeating-linear-gradient(var(--accent) 0 4px, transparent 4px 7px); }
-.gap:hover { color: var(--muted); }
+.gap:hover { color: rgb(128 128 128 / .85); }
 .colors { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
 .colors label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); align-items: flex-start; }
 input[type=color] { width: 100%; height: 30px; border: 1px solid var(--line); border-radius: 5px; padding: 2px; background: var(--bg); cursor: pointer; }
